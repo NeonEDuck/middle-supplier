@@ -1,0 +1,139 @@
+{% extends 'list_page.html' %}
+
+{% block form %}
+    <div class="two-col-grid">
+        <label for="firm_id">廠商:</label>
+        <select name="firm_id" id="firm_id">
+            <option value="">請選擇</option>
+            {% for _id, name in firm_list.items() %}
+                <option value="{{ _id }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        <label for="items">商品:</label>
+        <div class="horizontal-list">
+            <select name="item_select" id="item-select">
+                <option value="">請選擇</option>
+                {% for _id, name in item_list.items() %}
+                    <option value="{{ _id }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button id="addItem" type="button">+</button>
+        </div>
+    </div>
+    <div id="form-list" class="table">
+        <div class="table__row table__row--header">
+            <p class="table__cell table__cell--100">id</p>
+            <p class="table__cell table__cell--500">名字</p>
+            <p class="table__cell table__cell--300">單價</p>
+            <p class="table__cell table__cell--300">數量</p>
+            <p class="table__cell table__cell--300"></p>
+        </div>
+    </div>
+{% endblock form %}
+
+{% block script %}
+
+<div id="item-row" class="table__row" hidden>
+    <div class="table__cell table__cell--100">
+        <p id="item-row-id">None</p>
+    </div>
+    <div class="table__cell table__cell--500">
+        <p id="item-row-name">None</p>
+    </div>
+    <div class="table__cell table__cell--300">
+        <input id="item-row-price" type="number" value="0" min=0>
+    </div>
+    <div class="table__cell table__cell--300">
+        <input id="item-row-amount" type="number" value="0" min=0>
+    </div>
+    <div class="table__cell table__cell--300">
+        <button id="item-row-delete" class="button--red" type="button">刪除</button>
+    </div>
+</div>
+
+<script>
+    let formList = document.getElementById("form-list");
+    let itemSelect = document.getElementById("item-select");
+    let itemRowPrefab = document.getElementById("item-row");
+    let itemList = {};
+    itemRowPrefab.id = "";
+    let formBackground = document.getElementById("create-form-background");
+    formBackground.style.display = "none";
+    let form = document.getElementById("create-form");
+    document.getElementById("open-form").addEventListener("click", function (e) {
+        formBackground.style.display = null;
+    })
+    document.getElementById("cancel").addEventListener("click", function (e) {
+        formBackground.style.display = "none";
+        itemList = {}
+        formList.querySelectorAll(".table__row:not(.table__row--header)").forEach((e) => {
+            e.remove()
+        })
+    })
+    document.getElementById("addItem").addEventListener("click", function (e) {
+        if (itemSelect.selectedIndex > 0) {
+            let _id = itemSelect.value;
+            let name = itemSelect.options[itemSelect.selectedIndex].text;
+
+            if (!(_id in itemList)) {
+                console.log(_id);
+                console.log(name);
+                
+                itemList[_id] = getItemRowClone(_id, name)
+                formList.appendChild(itemList[_id])
+            }
+        }
+    })
+    document.getElementById("create").addEventListener("click", async function (e) {
+        // form.style.display = "none";
+        // form.submit();
+        toggleLoading(true);
+
+        let data = {
+            firm_id: document.querySelector("#firm_id").value,
+            items: []
+        }
+
+        for (let [key, value] of Object.entries(itemList)) {
+            let item_id = key
+            let price  = value.querySelector("#item-row-price").valueAsNumber
+            let amount = value.querySelector("#item-row-amount").valueAsNumber
+
+            data.items.push({
+                item_id: item_id,
+                price: price,
+                amount: amount
+            })
+        }
+
+        const rsps = await fetch("/order/", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        let text = await rsps.text()
+
+        if (text === 'success') {
+            window.location.reload();
+        }
+        else {
+            alert(text);
+            toggleLoading(false);
+        }
+    })
+    
+    function getItemRowClone(_id, name) {
+        let itemRow = itemRowPrefab.cloneNode(true);
+        itemRow.removeAttribute("hidden");
+        itemRow.querySelector("#item-row-id").innerHTML = _id
+        itemRow.querySelector("#item-row-name").innerHTML = name
+        itemRow.querySelector("#item-row-delete").addEventListener("click", function(e) {
+            itemRow.remove();
+            delete itemList[_id];
+        })
+        return itemRow;
+    }
+</script>
+{% endblock script %}

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main>
+    <section class="rounded-panel">
+        <div class="title">
+            <input class="title" id="name" value="{{ name }}" type="text" disabled>
+            <h5>ID: {{ _id }}</h5>
+        </div>
+        
+        <div class="two-col-grid">
+            {% for field, attr in data.items() %}
+            
+                {% if attr['options'] is mapping %}
+                
+                    {% if attr['editable'] == False %}
+                        <p>{{ attr['label'] or field }}:</p>
+                        <p>{{ attr['options'].get(attr['value']) }}</p>
+                    {% else %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <select name="{{ field }}" id="{{ field }}">
+                            <option value="{{ attr['value'] }}">請選擇</option>
+                            {% for _id, name in attr['options'].items() %}
+                                <option value="{{ _id }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+
+                {% else %}
+                    {% if attr['editable'] == False %}
+                        <p>{{ attr['label'] or field }}:</p>
+                        <p>{{ attr['value'] }}</p>
+                    {% elif attr['value'] is boolean %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" {% if attr['value'] == true %} checked {% endif %} type="checkbox" disabled>
+                    {% elif attr['value'] is number %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" value="{{ attr['value'] }}" type="number" min="0" disabled>
+                    {% else %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" value="{{ attr['value'] }}" type="text" disabled>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% block extra_data %}
+        {% endblock extra_data %}
+
+        <div class="horizontal-list right-align">
+            
+            {% if info['edit_button'] %}
+                <button id="delete-button" class="button--red">刪除</button>
+                <button id="edit-button">編輯</button>
+                <button id="cancel-button" class="button--red" hidden>取消</button>
+                <button id="confirm-button"                    hidden>確定</button>
+            {% else %}
+                <button disabled>刪除</button>
+                <button disabled>編輯</button>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock body %}
+
+{% block script %}
+<script>
+    let btnList = [...document.getElementsByTagName('button')]
+    let inputList = [...document.getElementsByTagName('input')]
+    inputList.forEach(e => {
+        e.setAttribute("default", e.value)
+    })
+
+    document.getElementById("delete-button").addEventListener("click", async () => {
+        let msg = prompt("你確定要刪除{{ name }}嗎?\n(請輸入\"{{ _id }}\"已進行刪除)").trim()
+
+        if (msg == "{{ _id }}") {
+            toggleLoading(true);
+            const rsps = await fetch(window.location.href, {
+                method: 'DELETE'
+            })
+
+            let json = await rsps.json()
+
+            if (json["status"] == "delete_success") {
+                window.location.replace("/{{ info['path'] }}")
+            }
+            else {
+                alert("刪除失敗")
+                toggleLoading(false);
+            }
+        }
+    })
+
+    document.getElementById("edit-button").addEventListener("click", () => {
+        inputList.forEach(e => {
+            e.removeAttribute("disabled")
+        })
+        document.getElementById("delete-button" ).setAttribute("hidden", "true")
+        document.getElementById("edit-button"   ).setAttribute("hidden", "true")
+        document.getElementById("cancel-button" ).removeAttribute("hidden")
+        document.getElementById("confirm-button").removeAttribute("hidden")
+    })
+
+    function cancel() {
+        inputList.forEach(e => {
+            e.value = e.getAttribute("default")
+            e.setAttribute("disabled", "true")
+        })
+        document.getElementById("delete-button" ).removeAttribute("hidden")
+        document.getElementById("edit-button"   ).removeAttribute("hidden")
+        document.getElementById("cancel-button" ).setAttribute("hidden", "true")
+        document.getElementById("confirm-button").setAttribute("hidden", "true")
+    }
+    document.getElementById("cancel-button").addEventListener("click", cancel)
+
+    document.getElementById("confirm-button").addEventListener("click", async () => {
+        toggleLoading(true);
+        
+        btnList.forEach(e => {
+            e.setAttribute("disabled", "true")
+        })
+
+        let data = {}
+        inputList.forEach((e, idx, arr) => {
+            if (e.getAttribute("type") === "number") {
+                data[e.id] = e.valueAsNumber
+            }
+            else if (e.getAttribute("type") === "checkbox") {
+                data[e.id] = e.checked
+            }
+            else {
+                data[e.id] = e.value
+            }
+        })
+        
+        const rsps = await fetch(window.location.href, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+
+        let json = await rsps.json()
+
+        if (json["status"] == "update_success") {
+            inputList.forEach(e => {
+                e.setAttribute("default", e.value)
+            })
+            cancel()
+        }
+        else {
+            alert("編輯失敗")
+            toggleLoading(false);
+        }
+
+        btnList.forEach(e => {
+            e.removeAttribute("disabled")
+        })
+    })
+</script>
+{% endblock script %}

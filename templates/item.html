@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main>
+    <section>
+        <div class="title horizontal-list horizontal-list--center">
+            <h1>商品</h1>
+            <button id="open-form" class="left-align" type="button">新增</button>
+        </div>
+
+        <ul class="vertical-list">
+            {% for item_id, name in item_dict.items() %}
+                <li class="rounded-panel horizontal-list horizontal-list--center">
+                    <span>{{ item_id }}</span>
+                    <span>{{ name }}</span>
+                    <a href="/item/{{ item_id }}" class="button right-align">查看</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <div id="create-form-background" class="full-screen flex-center">
+        <form id="create-form" class="rounded-panel vertical-list" method="POST" action="./">
+            <div class="two-col-grid">
+                <label for="name">商品名稱:</label>
+                <input id="name" name="name" type="text">
+                <label for="amount">數量:</label>
+                <input id="amount" name="amount" type="number" min=0>
+                <label for="ref_price">定價:</label>
+                <input id="ref_price" name="ref_price" type="number" min=0>
+            </div>
+            <div class="horizontal-list">
+                <button class="right-align" id="cancel" type="reset">取消</button>
+                <button id="create" type="button">新增</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock body %}
+
+{% block script %}
+<script>
+    let createForm = document.getElementById("create-form-background");
+    createForm.style.display = "none";
+    let form = document.getElementById("create-form");
+    document.getElementById("open-form").addEventListener("click", function (e) {
+        createForm.style.display = null;
+    })
+    document.getElementById("cancel").addEventListener("click", function (e) {
+        createForm.style.display = "none";
+    })
+    document.getElementById("create").addEventListener("click", function (e) {
+        //form.style.display = "none";
+        form.submit();
+    })
+</script>
+{% endblock script %}

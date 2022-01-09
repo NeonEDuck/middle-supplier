@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main class="center">
+    <h1>批發商管理系統</h1>
+    {% if user %}
+        <p>歡迎! {{ user['employee_name'] }}</p>
+    {% else %}
+        <p>您尚未登入</p>
+    {% endif %}
+</main>
+{% endblock body %}

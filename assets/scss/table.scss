@@ -1,0 +1,44 @@
+.table {
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.5em;
+    background-color: white;
+    box-shadow: 0 0 0.25em 0.25em hsla(0, 0, 40, 0.2);
+    overflow: hidden;
+
+
+    &__row {
+        display: flex;
+        flex-direction: row;
+        padding: 0.5em;
+
+        &:not(:last-child) {
+            border-bottom: 0.1em solid rgb(211, 211, 211);
+        }
+        
+        &--header {
+            border-bottom: none !important;
+            background-color: #555;
+            color: #fff;
+        }
+    }
+
+    &__cell {
+        display: flex;
+        align-items: center;
+        line-height: 100%;
+        padding-right: 0.1em;
+
+        @for $i from 1 through 9 {
+            &--#{$i * 100} {
+                flex-grow: $i;
+                flex-basis: $i * 100%;
+            }
+        }
+
+        * {
+            width: 100%;
+        }
+    }
+}
+    

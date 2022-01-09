@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main class="center">
+    <section class="box">
+        <h1>登入</h1>
+        <div class="two-col-grid">
+            <label for="employee_id">員工編號</label>
+            <input type="text" name="employee_id" id="employee_id">
+            <label for="passwd">密碼</label>
+            <input type="password" name="passwd" id="passwd">
+        </div>
+        <button id="login-button" class="right-align">登入</button>
+    </section>
+</main>
+{% endblock body %}
+
+{% block script %}
+<script>
+    let employee_id_input = document.querySelector("#employee_id");
+    let passwd_input      = document.querySelector("#passwd");
+    document.querySelector("#login-button").addEventListener("click", async function() {
+        let data = {
+            employee_id: employee_id_input.value,
+            passwd: passwd_input.value
+        };
+        const rsps = await fetch("/login", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        let text = await rsps.text()
+
+        if (text === 'success') {
+            window.location.replace("/");
+        }
+        else {
+            alert(text);
+        }
+
+    });
+</script>
+{% endblock script %}

@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main>
+    <section class="vertical-list rounded-panel">
+        <div class="title">
+            <h1>{{ name }}: {{ _id }}</h1>
+        </div>
+
+        <div class="two-col-grid">
+            {% for field, attr in data.items() %}
+            
+                {% if attr['options'] is mapping %}
+                
+                    {% if attr['editable'] == False %}
+                        <p>{{ attr['label'] or field }}:</p>
+                        <p>{{ attr['options'].get(attr['value']) }}</p>
+                    {% else %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <select name="{{ field }}" id="{{ field }}">
+                            <option value="{{ attr['value'] }}">請選擇</option>
+                            {% for _id, name in attr['options'].items() %}
+                                <option value="{{ _id }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+
+                {% else %}
+                    {% if attr['editable'] == False %}
+                        <p>{{ attr['label'] or field }}:</p>
+                        <p>{{ attr['value'] }}</p>
+                    {% elif attr['value'] is boolean %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" {% if attr['value'] == true %} checked {% endif %} type="checkbox" disabled>
+                    {% elif attr['value'] is number %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" value="{{ attr['value'] }}" type="number" min="0" disabled>
+                    {% else %}
+                        <label for="{{ field }}">{{ attr['label'] or field }}:</label>
+                        <input id="{{ field }}" value="{{ attr['value'] }}" type="text" disabled>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="table">
+            <div class="table__row table__row--header">
+                <p class="table__cell table__cell--100">id</p>
+                <p class="table__cell table__cell--500">名字</p>
+                <p class="table__cell table__cell--300">單價</p>
+                <p class="table__cell table__cell--300">數量</p>
+            </div>
+            {% for item in order_items %}
+                <div class="table__row">
+                    <p class="table__cell table__cell--100">{{ item['item_id'] }}</p>
+                    <p class="table__cell table__cell--500">{{ item['item_name'] }}</p>
+                    <p class="table__cell table__cell--300">{{ item['price'] }}</p>
+                    <p class="table__cell table__cell--300">{{ item['amount'] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="horizontal-list right-align">
+            <button id="delete-button" class="button--red">刪除</button>
+            <button id="edit-button">編輯</button>
+            {% if data['complete_date']['value'] == '未完成' %}
+                <button id="complete-button" type="button">完成</button>
+            {% endif %}
+        </div>
+    </section>
+    <div id="update-form-background" class="full-screen flex-center">
+        <form id="update-form" class="rounded-panel vertical-list" method="POST" action="./">
+            <div class="two-col-grid">
+                <label for="firm_id">廠商:</label>
+                <select name="firm_id" id="firm_id" v>
+                    <option value="">請選擇</option>
+                    {% for _id, name in firm_list.items() %}
+                        <option value="{{ _id }}" {% if _id == firm_id %} selected {% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="items">商品:</label>
+                <div class="horizontal-list">
+                    <select name="item_select" id="item-select">
+                        <option value="">請選擇</option>
+                        {% for _id, name in item_list.items() %}
+                            <option value="{{ _id }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="addItem" type="button">+</button>
+                </div>
+            </div>
+            <div id="form-list" class="table">
+                <div class="table__row table__row--header">
+                    <p class="table__cell table__cell--100">id</p>
+                    <p class="table__cell table__cell--500">名字</p>
+                    <p class="table__cell table__cell--300">單價</p>
+                    <p class="table__cell table__cell--300">數量</p>
+                    <p class="table__cell table__cell--300"></p>
+                </div>
+            </div>
+
+            <div class="horizontal-list">
+                <button class="right-align button--red" id="cancel-button" type="reset">取消</button>
+                <button id="confirm-button" type="button">更新</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock body %}
+
+{% block script %}
+<div id="item-row" class="table__row" hidden>
+    <div class="table__cell table__cell--100">
+        <p id="item-row-id">None</p>
+    </div>
+    <div class="table__cell table__cell--500">
+        <p id="item-row-name">None</p>
+    </div>
+    <div class="table__cell table__cell--300">
+        <input id="item-row-price" type="number" value="0" min=0>
+    </div>
+    <div class="table__cell table__cell--300">
+        <input id="item-row-amount" type="number" value="0" min=0>
+    </div>
+    <div class="table__cell table__cell--300">
+        <button id="item-row-delete" class="button--red" type="button">刪除</button>
+    </div>
+</div>
+
+<div id="data" hidden>
+    {% for item in order_items %}
+
+    <div id="item-row" class="table__row">
+        <div class="table__cell table__cell--100">
+            <p id="item-row-id">{{ item['item_id'] }}</p>
+        </div>
+        <div class="table__cell table__cell--500">
+            <p id="item-row-name">{{ item['item_name'] }}</p>
+        </div>
+        <div class="table__cell table__cell--300">
+            <input id="item-row-price" type="number" value="{{ item['price'] }}" min=0>
+        </div>
+        <div class="table__cell table__cell--300">
+            <input id="item-row-amount" type="number" value="{{ item['amount'] }}" min=0>
+        </div>
+        <div class="table__cell table__cell--300">
+            <button id="item-row-delete" class="button--red" type="button">刪除</button>
+        </div>
+    </div>
+{% endfor %}
+</div>
+
+<script>
+    let formBackground = document.getElementById("update-form-background");
+    formBackground.style.display = "none";
+    let form = document.getElementById("update-form");
+    let formList = document.querySelector("#form-list")
+    let itemSelect = document.getElementById("item-select");
+    let itemRowPrefab = document.getElementById("item-row");
+    let itemList = {};
+
+    let btnList = [...document.getElementsByTagName('button')]
+    let inputList = [...document.getElementsByTagName('input')]
+    inputList.forEach(e => {
+        e.setAttribute("default", e.value)
+    })
+
+    document.getElementById("delete-button").addEventListener("click", async () => {
+        let msg = prompt("你確定要刪除{{ name }}嗎?\n(請輸入\"{{ _id }}\"已進行刪除)").trim()
+
+        if (msg == "{{ _id }}") {
+            toggleLoading(true);
+            const rsps = await fetch(window.location.href, {
+                method: 'DELETE'
+            })
+
+            let text = await rsps.text()
+
+            if (text == "delete_success") {
+                window.location.replace("/{{ info['path'] }}")
+            }
+            else {
+                alert("刪除失敗")
+                toggleLoading(false);
+            }
+        }
+    })
+
+    document.getElementById("addItem").addEventListener("click", function (e) {
+        if (itemSelect.selectedIndex > 0) {
+            let _id = itemSelect.value;
+            let name = itemSelect.options[itemSelect.selectedIndex].text;
+
+            if (!(_id in itemList)) {
+                console.log(_id);
+                console.log(name);
+                
+                itemList[_id] = getItemRowClone(_id, name)
+                formList.appendChild(itemList[_id])
+            }
+        }
+    })
+
+    document.getElementById("edit-button").addEventListener("click", () => {
+        itemList = {}
+        document.querySelectorAll("#data > *").forEach((e) => {
+            let clone = e.cloneNode(true)
+            let _id = e.querySelector("#item-row-id").innerHTML
+            clone.querySelector("#item-row-delete").addEventListener("click", function(e) {
+                clone.remove();
+                delete itemList[_id];
+            })
+            formList.appendChild(clone)
+            itemList[_id] = clone
+        })
+        formBackground.style.display = null;
+    })
+
+    document.getElementById("cancel-button").addEventListener("click", () => {
+        formBackground.style.display = "none";
+        itemList = {}
+        formList.querySelectorAll(".table__row:not(.table__row--header)").forEach((e) => {
+            e.remove()
+        })
+    })
+
+    document.getElementById("confirm-button").addEventListener("click", async () => {
+        toggleLoading(true);
+        let data = {
+            firm_id: document.querySelector("#firm_id").value,
+            items: []
+        }
+
+        for (let [key, value] of Object.entries(itemList)) {
+            let item_id = key
+            let price  = value.querySelector("#item-row-price").valueAsNumber
+            let amount = value.querySelector("#item-row-amount").valueAsNumber
+
+            data.items.push({
+                item_id: item_id,
+                price: price,
+                amount: amount
+            })
+            console.log(item_id)
+            console.log(price)
+            console.log(amount)
+        }
+        console.log(data)
+
+
+        const rsps = await fetch(window.location.href, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        let text = await rsps.text()
+
+        if (text == "update_success") {
+            window.location.reload()
+        }
+        else {
+            alert("編輯失敗")
+            toggleLoading(false);
+        }
+    })
+
+    document.querySelector("#complete-button").addEventListener("click", async function (e) {
+        toggleLoading(true);
+        const rsps = await fetch(window.location.href, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: "{}"
+        })
+        let text = await rsps.text()
+
+        console.log(text)
+
+        if (text == "update_success") {
+            window.location.reload()
+        }
+        else {
+            alert("編輯失敗")
+            toggleLoading(false);
+        }
+    })
+    
+    function getItemRowClone(_id, name) {
+        let itemRow = itemRowPrefab.cloneNode(true);
+        itemRow.removeAttribute("hidden");
+        itemRow.querySelector("#item-row-id").innerHTML = _id
+        itemRow.querySelector("#item-row-name").innerHTML = name
+        itemRow.querySelector("#item-row-delete").addEventListener("click", function(e) {
+            itemRow.remove();
+            delete itemList[_id];
+        })
+        return itemRow;
+    }
+</script>
+{% endblock script %}

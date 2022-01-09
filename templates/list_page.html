@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<main>
+    <section>
+        <div class="title horizontal-list horizontal-list--center">
+            <h1>{{ info['title'] }}</h1>
+            <button id="open-form" class="left-align" type="button">新增</button>
+        </div>
+
+        <ul class="vertical-list">
+            <li class="rounded-panel horizontal-list horizontal-list--center">
+            {% for cell in header %}
+                <span class="width-{{ cell[1] }}">{{ cell[0] }}</span>
+            {% endfor %}
+            <a href="" class="button right-align" hidden>查看</a>
+        </li>
+            {% for row in display %}
+                <li class="rounded-panel horizontal-list horizontal-list--center">
+                    {% for i in range(row|length) %}
+                        <span class="width-{{ header[i][1] }}">{{ row[i] }}</span>
+                    {% endfor %}
+                    <a href="/{{ info['path'] }}/{{ row[0] }}" class="button right-align">查看</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    
+    <div id="create-form-background" class="full-screen flex-center">
+        <form id="create-form" class="rounded-panel vertical-list" method="POST" action="./">
+            {% block form %}
+                <div class="two-col-grid">
+                    {% for field, type in create_form.items() %}
+                        <label for="{{ field }}">{{ field }}:</label>
+                        {% if type == 'number' %}
+                            <input id="{{ field }}" name="{{ field }}" type="number" min="0">
+                        {% elif type is mapping %}
+                            <select name="{{ field }}" id="{{ field }}">
+                                <option value="">請選擇</option>
+                                {% for _id, name in type.items() %}
+                                    <option value="{{ _id }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <input id="{{ field }}" name="{{ field }}" type="{{ type }}">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endblock form %}
+            <div class="horizontal-list">
+                <button class="right-align button--red" id="cancel" type="reset">取消</button>
+                <button id="create" type="button">新增</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock body %}
+
+{% block script %}
+<script>
+    let formBackground = document.getElementById("create-form-background");
+    formBackground.style.display = "none";
+    let form = document.getElementById("create-form");
+    document.getElementById("open-form").addEventListener("click", function (e) {
+        formBackground.style.display = null;
+    })
+    document.getElementById("cancel").addEventListener("click", function (e) {
+        formBackground.style.display = "none";
+    })
+    document.getElementById("create").addEventListener("click", function (e) {
+        toggleLoading(true);
+        form.submit();
+    })
+</script>
+{% endblock script %}

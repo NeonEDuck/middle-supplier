@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/table.css') }}">
+    <title>Document</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <a href="/">
+                <li>主頁</li>
+            </a>
+            {% if not user %}
+                <a href="/login">
+                    <li>登入</li>
+                </a>
+            {% else %}
+                <a href="/item">
+                    <li>商品</li>
+                </a>
+                {% if user['title'] == 'supervisor' %}
+                    <a href="/employee">
+                        <li>員工</li>
+                    </a>
+                {% endif %}
+                <a href="/firm">
+                    <li>廠商</li>
+                </a>
+                <a href="/order">
+                    <li>訂單</li>
+                </a>
+                <a href="/employee/{{ user['employee_id'] }}">
+                    <li>我的資料</li>
+                </a>
+                <a href="/logout">
+                    <li>登出</li>
+                </a>
+            {% endif %}
+        </ul>
+    </nav>
+    {% block body %}
+    <main>
+        <h1>Hello World!</h1>
+    </main>
+    {% endblock body %}
+    .
+    <div id="loading" class="full-screen flex-center" hidden>
+        <div class="loading-icon"></div>
+    </div>
+
+    <script>
+        function toggleLoading(state) {
+            if (state) {
+                document.querySelector("#loading").removeAttribute("hidden")
+            }
+            else {
+                document.querySelector("#loading").setAttribute("hidden", "true")
+            }
+        }
+    </script>
+
+    {% block script %}
+    {% endblock script %}
+</body>
+</html>
