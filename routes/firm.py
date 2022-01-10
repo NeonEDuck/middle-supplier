@@ -17,7 +17,7 @@ def firm_page():
     # get item list
     result = pgsql.query('SELECT firm_id, firm_name, is_supplier FROM firm ORDER BY firm_id;')
     
-    result = [ (x[0], x[1], '供應商' if x[2] else '出貨商') for x in result]
+    result = [ (x[0], x[1], '供應商' if x[2] else '客戶') for x in result]
     
     return render_template(
         'list_page.html',

@@ -99,15 +99,11 @@ def employee_detail_page(_id):
         
         case 'PUT':
             # update
-            json = request.get_json()
-            # try:
-            #     pgsql.query('UPDATE employee SET employee_name = %s, title = %s, supervisor_id = %s WHERE employee_id = %s', (json["name"], json["amount"], json["ref_price"], _id))
-            # except:
-            #     return {
-            #         'status': 'update_failed'
-            #     }
             try:
+                json = request.get_json()
                 pgsql.query('UPDATE employee SET employee_name = %s WHERE employee_id = %s', (json["name"], _id))
+                if session.get('user')['employee_id'] == int(_id):
+                    session.get('user')['employee_name'] = json["name"]
             except:
                 return {
                     'status': 'update_failed'
@@ -124,6 +120,8 @@ def employee_detail_page(_id):
                 return {
                     'status': 'delete_failed'
                 }
+            if session.get('user')['employee_id'] == int(_id):
+                session['user'] = None
             return {
                 'status': 'delete_success'
             }

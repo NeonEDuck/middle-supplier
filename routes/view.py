@@ -33,7 +33,7 @@ def login_page():
             
             return 'success'
         else:
-            return 'fail'
+            return '登入失敗'
     
     return render_template(
         'login.html',

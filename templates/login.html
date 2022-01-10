@@ -20,6 +20,7 @@
     let employee_id_input = document.querySelector("#employee_id");
     let passwd_input      = document.querySelector("#passwd");
     document.querySelector("#login-button").addEventListener("click", async function() {
+        toggleLoading(true);
         let data = {
             employee_id: employee_id_input.value,
             passwd: passwd_input.value
@@ -32,12 +33,13 @@
             body: JSON.stringify(data)
         })
         let text = await rsps.text()
-
+        
         if (text === 'success') {
             window.location.replace("/");
         }
         else {
             alert(text);
+            toggleLoading(false);
         }
 
     });
